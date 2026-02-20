@@ -1,0 +1,19 @@
+dataset:
+  source: uci_german_credit   # descriptive label (optional)
+
+label_col: credit_risk
+positive_label: good
+
+sensitive_cols:
+  - sex
+  - age_group
+
+min_group_size: 30
+fairness_threshold: 0.05
+
+test_size: 0.25
+random_state: 42
+
+model:
+  type: logistic_regression
+  max_iter: 2000

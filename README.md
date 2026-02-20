@@ -80,8 +80,4 @@ pip install fairlearn pandas scikit-learn numpy matplotlib pyyaml
 python src/train.py --config config/audit_config.yaml
 
 ---
-
-## Definition
-This system is not a bias detector.
-
-It is an evidence‑based fairness auditor.
+s

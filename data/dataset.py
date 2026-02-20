@@ -73,7 +73,6 @@ def split_dataset(df: pd.DataFrame, label_col: str = "credit_risk", test_size: f
 def load_prepared_data(test_size: float = 0.25, random_state: int = 42):
     df = load_raw_dataset()
     df = clean_dataset(df)
-    validate_dataset(df)
 
     return split_dataset(
         df,
