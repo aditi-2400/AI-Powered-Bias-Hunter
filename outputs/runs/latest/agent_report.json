@@ -1,0 +1,44 @@
+{
+  "summary": "Fairness Audit Results",
+  "detected_issues": [
+    {
+      "attribute": "sex",
+      "metric": "selection_rate",
+      "issue_type": "demographic_disparity",
+      "severity": "moderate",
+      "evidence": [
+        "fairness_report.sex.difference.selection_rate = 0.11080249230538253"
+      ]
+    },
+    {
+      "attribute": "age_group",
+      "metric": "true_positive_rate",
+      "issue_type": "unequal_opportunity",
+      "severity": "moderate",
+      "evidence": [
+        "fairness_report.age_group.by_group.true_positive_rate.young = 0.6363636363636364"
+      ]
+    },
+    {
+      "attribute": "age_group",
+      "metric": "false_positive_rate",
+      "issue_type": "unequal_harm",
+      "severity": "mild",
+      "evidence": [
+        "fairness_report.age_group.by_group.false_positive_rate.young = 0.5789473684210527"
+      ]
+    }
+  ],
+  "likely_causes": [
+    "Model selection bias"
+  ],
+  "recommended_tests": [
+    "run_feature_distribution_comparison",
+    "run_proxy_detection"
+  ],
+  "mitigations": [],
+  "limits": [
+    "min_group_size = 30"
+  ],
+  "narrative_markdown": "## Fairness Audit Narrative\n### What we found\nOur fairness audit has identified three disparities in the model's performance.\n### Evidence (numbers)\nThe selection rate disparity between female and male is 0.1108, indicating a moderate level of demographic bias.\nThe true positive rate disparity between young and adult is 0.0367, indicating an unequal opportunity for certain groups.\nThe false positive rate disparity between young and adult is 0.0619, indicating a mild level of harm to certain groups.\n### Likely causes (hypotheses)\nModel selection bias may be the cause of these disparities.\n### Recommended next tests\nTo further investigate these disparities, we recommend running feature distribution comparison and proxy detection.\n### Mitigations to consider\nNo mitigations are currently available for this model.\n### Limits / Unknowns\nThe minimum group size is set at 30, which may not be sufficient to capture certain patterns in the data."
+}
