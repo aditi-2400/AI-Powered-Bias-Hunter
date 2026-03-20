@@ -1,16 +1,35 @@
 # Bias Audit Agent - Fairness Diagnosis System
 
 ## Overview
-This project is an automated fairness auditing system for binary classification models.
-It combines deterministic metric computation with LLM-based reasoning to:
+This project implements an automated fairness auditing system that detects, analyzes, and explains potential bias in machine learning decision models.
 
-- detect disparities across sensitive groups
-- plan targeted diagnostics
-- execute diagnostics
-- produce a structured final report
-- surface outputs in a Streamlit UI
+Disparity alone is not evidence of discrimination. **Unexplained disparity is.**
 
-Disparity alone is not evidence of discrimination. The goal is to separate measurable disparities from plausible explanations and unresolved risk.
+## Core Idea
+Not every statistical difference is bias.
+
+Bias exists when a protected attribute influences predictions in a way that cannot be explained by legitimate predictive features.
+
+## Why This Project Is Different
+Most fairness projects stop at computing metrics.
+
+This system:
+
+- Detects disparities
+- Explains them
+- Hypothesizes causes
+- Recommends investigations
+- Proposes mitigation strategies
+
+That makes it a reasoning system, not just a metric calculator.
+
+## Design Principles
+- Interpretable
+- Reproducible
+- Evidence-based
+- Modular
+- Auditable
+- Deterministic + Agent hybrid architecture
 
 ## What Has Been Implemented
 Recent updates completed in this codebase:
@@ -228,3 +247,6 @@ bias-hunter/
 - `agent_plan` and `agent_report` require local Ollama access (`http://localhost:11434`).
 - If sandboxed execution blocks localhost networking, run those steps with appropriate permissions.
 - Use module mode (`python -m ...`) to avoid import path errors.
+
+## One-Line Summary
+An automated fairness auditor that not only measures disparities but interprets and explains them.
