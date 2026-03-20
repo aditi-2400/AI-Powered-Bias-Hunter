@@ -1,0 +1,25 @@
+{
+  "columns": [
+    "checking_account_status",
+    "duration",
+    "credit_history",
+    "purpose",
+    "credit_amount",
+    "savings_account",
+    "employment_status",
+    "installment_rate",
+    "personal_status_sex",
+    "other_debtors",
+    "present_residence",
+    "property",
+    "age",
+    "other_payment_plans",
+    "housing",
+    "existing_credits",
+    "job",
+    "dependents",
+    "telephone",
+    "foreign_worker",
+    "credit_risk"
+  ]
+}

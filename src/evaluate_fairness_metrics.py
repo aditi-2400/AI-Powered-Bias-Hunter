@@ -4,7 +4,6 @@ import argparse
 import pandas as pd
 import yaml
 from fairlearn.metrics import MetricFrame, selection_rate, true_positive_rate, false_positive_rate
-from data.dataset import load_raw_dataset, clean_dataset
 
 def get_latest_run_dir():
     latest_dir = os.path.join("outputs","runs","latest")
@@ -20,35 +19,45 @@ def load_predictions(latest_dir: str) -> pd.DataFrame:
         raise FileNotFoundError("predictions.csv not found. Run training first")
     return pd.read_csv(path)
 
-def load_sensitive_features(row_index:pd.Series) -> pd.DataFrame:
-    df = load_raw_dataset()
-    df = clean_dataset(df)
-    subset = df.loc[row_index]
-    return subset[["sex", "age_group"]]
-
-def compute_metrics(metrics: dict, y_true: pd.Series, y_pred: pd.Series, 
-                    sens_features: pd.DataFrame, sens_cols: str):
+def compute_metric_frame(metrics: dict, y_true: pd.Series, y_pred: pd.Series, 
+                    sens_features: pd.Series):
     return MetricFrame(
         metrics=metrics,
         y_true=y_true,
         y_pred=y_pred,
-        sensitive_features=sens_features[sens_cols]
+        sensitive_features=sens_features
     )
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="config/audit_config.yaml")
-    args = parser.parse_args()
+def add_flags(section: dict, threshold: float) -> dict:
+    diffs = section["difference"]
+    section["flags"] = {
+        k: (v is not None and float(v) > threshold)
+        for k, v in diffs.items()
+    }
+    return section
 
-    with open(args.config, "r") as f:
-        config = yaml.safe_load(f)
+def compute_group_sizes(preds: pd.DataFrame, sensitive_cols: list[str]) -> dict:
+    out = {}
+    for col in sensitive_cols:
+        counts = preds[col].value_counts(dropna=False).to_dict()
+        out[col] = {str(k): int(v) for k, v in counts.items()}
+    return out
 
-    latest_dir = get_latest_run_dir()
+def evaluate_fairness(run_dir: str, config: dict) -> dict:
+    preds = load_predictions(run_dir)
 
-    preds = load_predictions(latest_dir)
-    sens = load_sensitive_features(preds["row_index"])
+    positive_label = config.get("positive_label")
+    sensitive_cols = config.get("sensitive_cols", []) or []
+    threshold = float(config.get("fairness_threshold", 0.05))
 
-    positive_label = config.get("positive_label", "good")
+    required_cols = ["y_true", "y_pred"] + sensitive_cols
+    missing = [c for c in required_cols if c not in preds.columns]
+    if missing:
+        raise ValueError(
+            f"predictions.csv missing required columns for fairness evaluation: {missing}"
+        )
+    
+    group_sizes = compute_group_sizes(preds, sensitive_cols)
     y_true = (preds["y_true"] == positive_label).astype(int)
     y_pred = (preds["y_pred"] == positive_label).astype(int)
 
@@ -58,37 +67,25 @@ def main():
         "false_positive_rate": false_positive_rate,
     }
 
-    mf_age = compute_metrics(metrics, y_true, y_pred, sens, "age_group")
-    mf_sex = compute_metrics(metrics, y_true, y_pred, sens, "sex")
-
-    report = {
-        "sex": {
-            "by_group": mf_sex.by_group.to_dict(),
-            "difference": mf_sex.difference().to_dict(),
-            "ratio": mf_sex.ratio().to_dict(),
-        },
-        "age_group": {
-            "by_group": mf_age.by_group.to_dict(),
-            "difference": mf_age.difference().to_dict(),
-            "ratio": mf_age.ratio().to_dict(),
-        },
-    }
-
-    threshold = float(config.get("fairness_threshold", "0.05"))
-    def add_flags(section: dict) -> dict:
-        diffs = section["difference"]
-        section["flags"] = {k: (v is not None and float(v) > threshold) for k,v in diffs.items()}
-        return section
-    
-    report["sex"] = add_flags(report["sex"])
-    report["age_group"] = add_flags(report["age_group"])
-
-    out_path = os.path.join(latest_dir, "fairness_report.json")
-    with open(out_path, "w") as f:
-        json.dump(report, f, indent=2, default=str)
-
+    report = {}
     summary_rows = []
-    for attr, mf in [("sex", mf_sex), ("age_group", mf_age)]:
+
+    for attr in sensitive_cols:
+        mf = compute_metric_frame(
+            metrics=metrics,
+            y_true=y_true,
+            y_pred=y_pred,
+            sens_features=preds[attr],
+        )
+
+        section = {
+            "by_group": mf.by_group.to_dict(),
+            "difference": mf.difference().to_dict(),
+            "ratio": mf.ratio().to_dict(),
+        }
+        section = add_flags(section, threshold)
+        report[attr] = section
+
         by = mf.by_group
         for group_name, row in by.iterrows():
             summary_rows.append({
@@ -96,9 +93,47 @@ def main():
                 "group": str(group_name),
                 **{k: float(row[k]) for k in row.index},
             })
-    pd.DataFrame(summary_rows).to_csv(os.path.join(latest_dir, "fairness_by_group.csv"), index=False)
 
-    print(f"Saved fairness report to: {out_path}")
+    out_path = os.path.join(run_dir, "fairness_report.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, default=str)
+
+    group_sizes_path = os.path.join(run_dir, "group_sizes.json")
+    with open(group_sizes_path, "w", encoding="utf-8") as f:
+        json.dump(group_sizes, f, indent=2, default=str)
+
+    summary_path = os.path.join(run_dir, "fairness_by_group.csv")
+    pd.DataFrame(summary_rows).to_csv(summary_path, index=False)
+
+    # keep latest mirrored
+    latest_dir = os.path.join("outputs", "runs", "latest")
+    if os.path.abspath(run_dir) != os.path.abspath(latest_dir):
+        os.makedirs(latest_dir, exist_ok=True)
+        with open(os.path.join(latest_dir, "fairness_report.json"), "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, default=str)
+        pd.DataFrame(summary_rows).to_csv(
+            os.path.join(latest_dir, "fairness_by_group.csv"),
+            index=False,
+        )
+    with open(os.path.join(latest_dir, "group_sizes.json"), "w", encoding="utf-8") as f:
+            json.dump(group_sizes, f, indent=2, default=str)
+
+    return report
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config/audit_config.yaml")
+    parser.add_argument("--run-dir", default=None)
+    args = parser.parse_args()
+
+    with open(args.config, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+
+    run_dir = args.run_dir or get_latest_run_dir()
+    report = evaluate_fairness(run_dir, config)
+
+    print(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":

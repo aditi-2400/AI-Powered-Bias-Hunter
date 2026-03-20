@@ -1,243 +1,230 @@
-# Bias Audit Agent — Fairness Diagnosis System
+# Bias Audit Agent - Fairness Diagnosis System
 
 ## Overview
-## Overview
+This project is an automated fairness auditing system for binary classification models.
+It combines deterministic metric computation with LLM-based reasoning to:
 
-This project implements an automated fairness auditing system that
-detects, analyzes, and explains potential bias in machine learning
-decision models.
+- detect disparities across sensitive groups
+- plan targeted diagnostics
+- execute diagnostics
+- produce a structured final report
+- surface outputs in a Streamlit UI
 
-Disparity alone is not evidence of discrimination. **Unexplained
-disparity is.**
+Disparity alone is not evidence of discrimination. The goal is to separate measurable disparities from plausible explanations and unresolved risk.
 
-------------------------------------------------------------------------
+## What Has Been Implemented
+Recent updates completed in this codebase:
 
-## Core Idea
-
-Not every statistical difference is bias.
-
-Bias exists when a protected attribute influences predictions in a way
-that cannot be explained by legitimate predictive features.
-
-------------------------------------------------------------------------
+- Fixed execution mode issues by standardizing module-mode commands (`python -m ...`).
+- Added/validated full staged pipeline:
+  1. train
+  2. fairness evaluation
+  3. agent plan
+  4. diagnostics execution
+  5. agent report
+- Added deterministic post-processing in `agent_report` to avoid re-recommending diagnostics that already ran.
+- Aligned `narrative_markdown` with final `recommended_tests` so report text does not contradict JSON fields.
+- Removed stale narrative instruction to rerun `check_group_sample_sizes` when group sizes already exist.
+- Made deterministic markdown reporting (`src/reporting.py`) dataset-agnostic across configured sensitive attributes.
+- Extended report generation to include:
+  - diagnostics execution summary
+  - diagnostic result highlights
+  - agent explanation and narrative
+- Reworked Streamlit UI to reduce clutter and add:
+  - tabbed layout
+  - diagnostics panel with highlights
+  - clearer recommendations/mitigations/limits rendering
+  - dataset-column-wise sections
+  - config + dataset upload flow
+  - optional pipeline run from uploaded inputs
 
 ## System Pipeline
+Current pipeline:
 
-Data → Model → Fairlearn Metrics → Agent Reasoning → Explanation →
-Recommendations
+Data -> Train -> Fairness Metrics -> Agent Plan -> Diagnostics -> Agent Report -> UI/Markdown Report
 
-The system separates responsibilities across layers:
+Responsibility split:
 
-  Layer                Responsibility
-  -------------------- -----------------------------------------------
-  Deterministic code   Computes metrics and structured evidence
-  LLM Agent            Interprets results and generates explanations
-  UI                   Displays findings and recommendations
+- Deterministic code: metrics, diagnostics, artifacts
+- LLM agent: planning and explanation from provided evidence
+- UI/reporting: presentation and traceability
 
-This separation ensures reliability, interpretability, and
-reproducibility.
+## Fairness Metrics
+Computed via Fairlearn:
 
-------------------------------------------------------------------------
+- selection_rate (demographic parity signal)
+- true_positive_rate (equal opportunity signal)
+- false_positive_rate (unequal harm signal)
 
-## Fairness Metrics Used (via Fairlearn)
+For each sensitive attribute, the pipeline stores:
 
--   **Demographic Parity** --- outcome differences\
--   **Equal Opportunity** --- TPR differences\
--   **Equalized Odds** --- TPR + FPR differences\
--   **Predictive Parity** --- precision differences\
--   **Calibration** --- score reliability
+- `by_group`
+- `difference`
+- `ratio`
+- `flags` (threshold-based)
 
-Metrics are **signals, not verdicts**.
+## Diagnostics
+Supported diagnostics:
 
-------------------------------------------------------------------------
+- `check_group_sample_sizes`
+- `run_feature_distribution_comparison`
+- `run_proxy_detection`
+- `run_slice_scan`
+- `run_threshold_sensitivity`
 
-## Diagnosis Logic
+Diagnostics are planned by `agent_plan`, then executed by `run_diagnostics`, with outputs saved under:
 
-When disparities are detected, the agent analyzes the evidence and
-recommends further investigation steps.
+- `outputs/runs/latest/diagnostics/`
+- `outputs/runs/latest/diagnostics_run_summary.json`
 
-Suggested diagnostics may include:
+## Agent Layer
+### `agent_plan`
+Generates `requested_diagnostics` from existing evidence and avoids duplicates/already-run tests.
 
-1.  Feature distribution analysis\
-2.  Counterfactual testing\
-3.  Proxy detection\
-4.  Error distribution analysis
+### `agent_report`
+Generates final structured report:
 
-These diagnostics are **not executed automatically yet**.\
-They are proposed by the agent as targeted next steps to determine
-whether a disparity is explainable or potentially problematic.
+- summary
+- detected_issues
+- likely_causes
+- recommended_tests
+- mitigations
+- limits
+- narrative_markdown
 
-### Outcome Classification
+Post-processing now enforces consistency with executed diagnostics and cleans stale narrative recommendations.
 
-Based on available evidence, the agent classifies findings as:
+## Dataset-Agnostic Status
+The project is now mostly dataset-agnostic for binary tabular classification via config-driven loading and preprocessing.
 
--   No bias\
--   Explainable disparity\
--   Potential bias\
--   Likely bias
+Config controls:
 
-These classifications are interpretations based on statistical signals
-and should not be treated as legal or causal conclusions.
+- dataset path/format/schema
+- label column and positive label
+- sensitive columns
+- derived columns
+- fairness threshold
+- minimum group size
 
-------------------------------------------------------------------------
+Current constraints:
 
-## Dataset
+- binary classification only
+- `run_proxy_detection` currently supports binary sensitive attributes
 
-**German Credit Dataset (UCI)**
+## Streamlit UI
+Launch:
 
-Chosen because interpretability is required for fairness diagnosis.
+```bash
+streamlit run ui/app.py
+```
 
-Sensitive attributes used:
+UI includes:
 
--   sex\
--   age_group
+- Overview (artifact status + active config)
+- Fairness by Column
+- Diagnostics (executed tests + highlights + errors)
+- Agent (issues, causes, narrative, recommendations)
+- Dataset Columns (one section per column)
+- Downloads
 
-------------------------------------------------------------------------
+Upload mode supports:
 
-## LLM Agent Layer
-
-The system includes a local reasoning agent that:
-
--   Reads computed fairness evidence\
--   Explains disparities\
--   Classifies severity\
--   Proposes diagnostic tests\
--   Suggests mitigation strategies
-
-**Design constraint:**\
-The agent does **not** compute metrics.\
-It only reasons from provided evidence.
-
-This guarantees reproducibility and prevents hallucinated values.
-
-------------------------------------------------------------------------
-
-## User Interface (Streamlit Dashboard)
-
-The project includes an interactive UI for inspecting audit results.
-
-The dashboard displays:
-
--   Group-level fairness tables\
--   Disparity summaries\
--   Detected issues\
--   Agent explanations\
--   Recommended investigations\
--   Mitigation suggestions
-
-Run UI:
-
-    streamlit run ui/app.py
-
-------------------------------------------------------------------------
-
-## Local AI Model
-
-The reasoning agent runs on a **local LLM via Ollama**.
-
-Benefits:
-
--   No API cost\
--   Private inference\
--   Reproducible outputs\
--   Offline capability
-
-Install Ollama and download the model:
-
-    brew install ollama
-    ollama pull llama3.2
-
-------------------------------------------------------------------------
-
-## Project Structure
-
-    project/
-    │
-    ├── config/
-    │   └── audit_config.yaml
-    │
-    ├── src/
-    │   ├── init.py
-    │   ├── train.py
-    │   ├── evaluate_fairness_metrics.py
-    │   ├── agent.py
-    │   ├── model.py
-    │   └── reporting.py
-    │
-    ├── ui/
-    │   └── app.py
-    │
-    ├── outputs/
-    │   └── runs/latest/
-    │       ├── fairness_report.json
-    │       └── agent_report.json
-    │
-    └── README.md
-
-------------------------------------------------------------------------
-
-## Design Principles
-
--   Interpretable\
--   Reproducible\
--   Evidence-based\
--   Modular\
--   Auditable\
--   Deterministic + Agent hybrid architecture
-
-------------------------------------------------------------------------
+- uploading config YAML
+- uploading dataset file
+- generating effective config
+- running pipeline from uploaded inputs
 
 ## Installation
+Create virtual environment:
 
-Create environment:
-
-    python -m venv venv
-    source venv/bin/activate
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
 
 Install dependencies:
 
-    pip install fairlearn pandas scikit-learn numpy matplotlib pyyaml streamlit
+```bash
+pip install fairlearn pandas scikit-learn numpy matplotlib pyyaml streamlit
+```
 
-Install local LLM runtime:
+Install local LLM runtime (Ollama):
 
-    brew install ollama
-    ollama pull llama3.2
+```bash
+brew install ollama
+ollama pull llama3.2
+```
 
-------------------------------------------------------------------------
+## Running the Pipeline (Module Mode)
+Always run from project root.
 
-## Run Pipeline
+1. Train
+```bash
+.venv/bin/python -m src.train --config config/audit_config.yaml
+```
 
-Train and evaluate:
+2. Fairness evaluation
+```bash
+.venv/bin/python -m src.evaluate_fairness_metrics --config config/audit_config.yaml
+```
 
-    python src/train.py --config config/audit_config.yaml
+3. Agent plan
+```bash
+.venv/bin/python -m src.agent_plan
+```
 
-Run agent:
+4. Run diagnostics
+```bash
+.venv/bin/python -m src.run_diagnostics
+```
 
-    python -m src.agent
+5. Agent report
+```bash
+.venv/bin/python -m src.agent_report
+```
 
-Launch UI:
+6. Deterministic markdown report
+```bash
+.venv/bin/python -m src.reporting --config config/audit_config.yaml
+```
 
-    streamlit run ui/app.py
+## Output Artifacts
+Primary files in `outputs/runs/latest/`:
 
-------------------------------------------------------------------------
+- `metrics.json`
+- `predictions.csv`
+- `fairness_report.json`
+- `fairness_by_group.csv`
+- `group_sizes.json`
+- `agent_plan.json`
+- `diagnostics_run_summary.json`
+- `diagnostics/*.json`
+- `agent_report.json`
+- `report.md`
 
-## Why This Project Is Different
+## Project Structure
+```text
+bias-hunter/
+├── config/
+│   ├── audit_config.yaml
+│   └── schemas/
+├── data/
+│   └── dataset.py
+├── src/
+│   ├── train.py
+│   ├── evaluate_fairness_metrics.py
+│   ├── agent_common.py
+│   ├── agent_plan.py
+│   ├── run_diagnostics.py
+│   ├── agent_report.py
+│   └── reporting.py
+├── ui/
+│   └── app.py
+└── outputs/
+    └── runs/
+```
 
-Most fairness projects stop at computing metrics.
-
-This system:
-
--   Detects disparities\
--   Explains them\
--   Hypothesizes causes\
--   Recommends investigations\
--   Proposes mitigation strategies
-
-That makes it a reasoning system, not just a metric calculator.
-
-------------------------------------------------------------------------
-
-## One-Line Summary
-
-An automated fairness auditor that not only measures disparities but
-interprets and explains them.
+## Notes
+- `agent_plan` and `agent_report` require local Ollama access (`http://localhost:11434`).
+- If sandboxed execution blocks localhost networking, run those steps with appropriate permissions.
+- Use module mode (`python -m ...`) to avoid import path errors.

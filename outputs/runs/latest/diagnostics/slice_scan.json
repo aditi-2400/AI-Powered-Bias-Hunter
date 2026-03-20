@@ -1,0 +1,171 @@
+{
+  "candidate_features": [
+    "checking_account_status",
+    "credit_history",
+    "savings_account",
+    "employment_status",
+    "installment_rate"
+  ],
+  "top_slices": [
+    {
+      "feature": "checking_account_status",
+      "value": "A14",
+      "n": 93,
+      "selection_rate": 1.0,
+      "true_positive_rate": 1.0,
+      "false_positive_rate": 1.0
+    },
+    {
+      "feature": "checking_account_status",
+      "value": "A13",
+      "n": 15,
+      "selection_rate": 1.0,
+      "true_positive_rate": 1.0,
+      "false_positive_rate": 1.0
+    },
+    {
+      "feature": "credit_history",
+      "value": "A34",
+      "n": 66,
+      "selection_rate": 0.9393939393939394,
+      "true_positive_rate": 0.9607843137254902,
+      "false_positive_rate": 0.8666666666666667
+    },
+    {
+      "feature": "savings_account",
+      "value": "A64",
+      "n": 14,
+      "selection_rate": 0.9285714285714286,
+      "true_positive_rate": 1.0,
+      "false_positive_rate": 0.5
+    },
+    {
+      "feature": "savings_account",
+      "value": "A63",
+      "n": 22,
+      "selection_rate": 0.9090909090909091,
+      "true_positive_rate": 0.8823529411764706,
+      "false_positive_rate": 1.0
+    },
+    {
+      "feature": "savings_account",
+      "value": "A65",
+      "n": 47,
+      "selection_rate": 0.8723404255319149,
+      "true_positive_rate": 0.875,
+      "false_positive_rate": 0.8571428571428571
+    },
+    {
+      "feature": "employment_status",
+      "value": "A74",
+      "n": 44,
+      "selection_rate": 0.8636363636363636,
+      "true_positive_rate": 0.9411764705882353,
+      "false_positive_rate": 0.6
+    },
+    {
+      "feature": "employment_status",
+      "value": "A75",
+      "n": 59,
+      "selection_rate": 0.8305084745762712,
+      "true_positive_rate": 0.8913043478260869,
+      "false_positive_rate": 0.6153846153846154
+    },
+    {
+      "feature": "installment_rate",
+      "value": "1",
+      "n": 34,
+      "selection_rate": 0.8235294117647058,
+      "true_positive_rate": 0.8888888888888888,
+      "false_positive_rate": 0.5714285714285714
+    },
+    {
+      "feature": "installment_rate",
+      "value": "2",
+      "n": 60,
+      "selection_rate": 0.8,
+      "true_positive_rate": 0.813953488372093,
+      "false_positive_rate": 0.7647058823529411
+    },
+    {
+      "feature": "employment_status",
+      "value": "A73",
+      "n": 91,
+      "selection_rate": 0.7802197802197802,
+      "true_positive_rate": 0.8688524590163934,
+      "false_positive_rate": 0.6
+    },
+    {
+      "feature": "credit_history",
+      "value": "A32",
+      "n": 132,
+      "selection_rate": 0.7727272727272727,
+      "true_positive_rate": 0.84375,
+      "false_positive_rate": 0.5833333333333334
+    },
+    {
+      "feature": "installment_rate",
+      "value": "3",
+      "n": 39,
+      "selection_rate": 0.7692307692307693,
+      "true_positive_rate": 0.8709677419354839,
+      "false_positive_rate": 0.375
+    },
+    {
+      "feature": "savings_account",
+      "value": "A62",
+      "n": 20,
+      "selection_rate": 0.75,
+      "true_positive_rate": 0.75,
+      "false_positive_rate": 0.75
+    },
+    {
+      "feature": "installment_rate",
+      "value": "4",
+      "n": 117,
+      "selection_rate": 0.717948717948718,
+      "true_positive_rate": 0.8378378378378378,
+      "false_positive_rate": 0.5116279069767442
+    },
+    {
+      "feature": "credit_history",
+      "value": "A33",
+      "n": 26,
+      "selection_rate": 0.6923076923076923,
+      "true_positive_rate": 0.7368421052631579,
+      "false_positive_rate": 0.5714285714285714
+    },
+    {
+      "feature": "savings_account",
+      "value": "A61",
+      "n": 147,
+      "selection_rate": 0.6870748299319728,
+      "true_positive_rate": 0.8191489361702128,
+      "false_positive_rate": 0.4528301886792453
+    },
+    {
+      "feature": "checking_account_status",
+      "value": "A12",
+      "n": 81,
+      "selection_rate": 0.6666666666666666,
+      "true_positive_rate": 0.72,
+      "false_positive_rate": 0.5806451612903226
+    },
+    {
+      "feature": "employment_status",
+      "value": "A71",
+      "n": 20,
+      "selection_rate": 0.65,
+      "true_positive_rate": 0.6428571428571429,
+      "false_positive_rate": 0.6666666666666666
+    },
+    {
+      "feature": "employment_status",
+      "value": "A72",
+      "n": 36,
+      "selection_rate": 0.5277777777777778,
+      "true_positive_rate": 0.65,
+      "false_positive_rate": 0.375
+    }
+  ]
+}

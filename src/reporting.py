@@ -1,5 +1,6 @@
 import os, json, yaml, argparse
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from src.evaluate_fairness_metrics import get_latest_run_dir
 
 def load_json(path: str) -> dict:
@@ -15,7 +16,58 @@ def fmt_float(x, ndigits=4):
         return f"{float(x):.{ndigits}f}"
     except Exception:
         return "NA"
-    
+
+
+def load_json_if_exists(path: str) -> Optional[Dict[str, Any]]:
+    if not os.path.exists(path):
+        return None
+    with open(path, "r") as f:
+        return json.load(f)
+
+
+def _resolve_artifact_path(latest_dir: str, output_file: str) -> str:
+    if os.path.exists(output_file):
+        return output_file
+    # Handle run-summary paths like outputs/runs/latest/...
+    if output_file.startswith("outputs/runs/latest/"):
+        rel = output_file.replace("outputs/runs/latest/", "", 1)
+        candidate = os.path.join(latest_dir, rel)
+        if os.path.exists(candidate):
+            return candidate
+    return output_file
+
+
+def _summarize_threshold_sensitivity(obj: Dict[str, Any]) -> List[str]:
+    lines = []
+    for attr, payload in (obj or {}).items():
+        results = payload.get("threshold_results", [])
+        if not results:
+            continue
+        best = min(
+            results,
+            key=lambda r: float(r.get("difference", {}).get("true_positive_rate", 1e9)),
+        )
+        tpr_diff = best.get("difference", {}).get("true_positive_rate")
+        fpr_diff = best.get("difference", {}).get("false_positive_rate")
+        lines.append(
+            f"- `{attr}`: lowest TPR gap at threshold {best.get('threshold')} "
+            f"(TPR diff={fmt_float(tpr_diff)}, FPR diff={fmt_float(fpr_diff)})"
+        )
+    return lines
+
+
+def _summarize_slice_scan(obj: Dict[str, Any]) -> List[str]:
+    top = (obj or {}).get("top_slices", [])[:5]
+    lines = []
+    for row in top:
+        lines.append(
+            f"- `{row.get('feature')}={row.get('value')}` (n={row.get('n')}): "
+            f"selection={fmt_float(row.get('selection_rate'))}, "
+            f"TPR={fmt_float(row.get('true_positive_rate'))}, "
+            f"FPR={fmt_float(row.get('false_positive_rate'))}"
+        )
+    return lines
+
 def render_section(title: str, section: dict) -> str:
     """
     section expected shape:
@@ -124,15 +176,19 @@ def main():
     lines.append("")
 
     # Fairness sections
-    if "sex" in fairness:
-        lines.append(render_section("Fairness by sex", fairness["sex"]))
-    if "age_group" in fairness:
-        lines.append(render_section("Fairness by age group", fairness["age_group"]))
+    sensitive_cols = config.get("sensitive_cols", []) or []
+    attrs_to_render = [attr for attr in sensitive_cols if attr in fairness]
+    if not attrs_to_render:
+        attrs_to_render = list(fairness.keys())
+
+    for attr in attrs_to_render:
+        title_attr = str(attr).replace("_", " ")
+        lines.append(render_section(f"Fairness by {title_attr}", fairness[attr]))
 
     # Simple “what to look at” section (no LLM, deterministic)
     lines.append("## Findings\n")
     flagged = []
-    for attr in ["sex", "age_group"]:
+    for attr in attrs_to_render:
         sec = fairness.get(attr, {})
         flags = sec.get("flags", {})
         for metric_name, is_flagged in (flags or {}).items():
@@ -145,6 +201,72 @@ def main():
     else:
         lines.append("No disparities exceeded the configured threshold (based on current flags).")
     lines.append("")
+
+    # Diagnostics section
+    diag_summary = load_json_if_exists(os.path.join(latest_dir, "diagnostics_run_summary.json"))
+    if diag_summary:
+        lines.append("## Diagnostics run\n")
+        executed = diag_summary.get("executed", []) or []
+        errors = diag_summary.get("errors", []) or []
+        if executed:
+            lines.append("### Executed diagnostics\n")
+            for item in executed:
+                tool = item.get("tool", "unknown")
+                args = item.get("args", {}) or {}
+                lines.append(f"- `{tool}` args={json.dumps(args, ensure_ascii=False)}")
+
+            lines.append("")
+            lines.append("### Diagnostic highlights\n")
+            for item in executed:
+                tool = item.get("tool")
+                artifact = _resolve_artifact_path(latest_dir, item.get("output_file", ""))
+                payload = load_json_if_exists(artifact)
+                if payload is None:
+                    lines.append(f"- `{tool}`: output artifact not found")
+                    continue
+
+                if tool == "run_threshold_sensitivity":
+                    summary_lines = _summarize_threshold_sensitivity(payload)
+                    lines.append(f"- `{tool}`")
+                    lines.extend(summary_lines or ["- no threshold results available"])
+                elif tool == "run_slice_scan":
+                    summary_lines = _summarize_slice_scan(payload)
+                    lines.append(f"- `{tool}`")
+                    lines.extend(summary_lines or ["- no slice results available"])
+                else:
+                    lines.append(f"- `{tool}`: artifact generated at `{artifact}`")
+            lines.append("")
+
+        if errors:
+            lines.append("### Diagnostic errors\n")
+            for err in errors:
+                lines.append(
+                    f"- `{err.get('tool', 'unknown')}` args={json.dumps(err.get('args', {}), ensure_ascii=False)}: "
+                    f"{err.get('error', 'unknown error')}"
+                )
+            lines.append("")
+
+    # Agent explanation section
+    agent_report = load_json_if_exists(os.path.join(latest_dir, "agent_report.json"))
+    if agent_report:
+        lines.append("## Agent explanation\n")
+        if agent_report.get("summary"):
+            lines.append(f"- Summary: {agent_report.get('summary')}")
+        likely_causes = agent_report.get("likely_causes", []) or []
+        if likely_causes:
+            for cause in likely_causes:
+                lines.append(f"- Likely cause: {cause}")
+        limits = agent_report.get("limits", []) or []
+        if limits:
+            for lim in limits:
+                lines.append(f"- Limit: {lim}")
+        lines.append("")
+
+        narrative = agent_report.get("narrative_markdown")
+        if isinstance(narrative, str) and narrative.strip():
+            lines.append("### Narrative\n")
+            lines.append(narrative)
+            lines.append("")
 
     out_md = os.path.join(latest_dir, "report.md")
     with open(out_md, "w") as f:

@@ -1,5 +1,5 @@
 {
-  "summary": "Fairness Audit Results",
+  "summary": "Fairness Audit Report",
   "detected_issues": [
     {
       "attribute": "sex",
@@ -7,38 +7,35 @@
       "issue_type": "demographic_disparity",
       "severity": "moderate",
       "evidence": [
-        "fairness_report.sex.difference.selection_rate = 0.11080249230538253"
+        "fairness_report.sex.difference.selection_rate = 0.10359582613917873"
       ]
     },
     {
       "attribute": "age_group",
       "metric": "true_positive_rate",
       "issue_type": "unequal_opportunity",
-      "severity": "moderate",
+      "severity": "mild",
       "evidence": [
-        "fairness_report.age_group.by_group.true_positive_rate.young = 0.6363636363636364"
+        "fairness_report.age_group.by_group.true_positive_rate.young = 0.6818181818181818"
       ]
     },
     {
-      "attribute": "age_group",
+      "attribute": "sex",
       "metric": "false_positive_rate",
       "issue_type": "unequal_harm",
       "severity": "mild",
       "evidence": [
-        "fairness_report.age_group.by_group.false_positive_rate.young = 0.5789473684210527"
+        "fairness_report.sex.difference.false_positive_rate = 0.05999999999999994"
       ]
     }
   ],
   "likely_causes": [
-    "Model selection bias"
+    "TPR/FPR disparities are flagged for age_group."
   ],
-  "recommended_tests": [
-    "run_feature_distribution_comparison",
-    "run_proxy_detection"
-  ],
+  "recommended_tests": [],
   "mitigations": [],
   "limits": [
-    "min_group_size = 30"
+    "group_sizes.sex.male < audit_config.min_group_size"
   ],
-  "narrative_markdown": "## Fairness Audit Narrative\n### What we found\nOur fairness audit has identified three disparities in the model's performance.\n### Evidence (numbers)\nThe selection rate disparity between female and male is 0.1108, indicating a moderate level of demographic bias.\nThe true positive rate disparity between young and adult is 0.0367, indicating an unequal opportunity for certain groups.\nThe false positive rate disparity between young and adult is 0.0619, indicating a mild level of harm to certain groups.\n### Likely causes (hypotheses)\nModel selection bias may be the cause of these disparities.\n### Recommended next tests\nTo further investigate these disparities, we recommend running feature distribution comparison and proxy detection.\n### Mitigations to consider\nNo mitigations are currently available for this model.\n### Limits / Unknowns\nThe minimum group size is set at 30, which may not be sufficient to capture certain patterns in the data."
+  "narrative_markdown": "# Fairness Audit Narrative\n## What we found\nWe detected demographic disparities in selection rates for sex and true positive rates for age group.\n## Evidence (numbers)\n* Sex: selection_rate = 0.10359582613917873, true_positive_rate = 0.6818181818181818, false_positive_rate = 0.05999999999999994\n* Age Group: true_positive_rate = 0.6818181818181818\n## Likely causes (hypotheses)\nTPR/FPR disparities are flagged for age_group.\n## Recommended next tests\n- No additional diagnostics recommended (existing diagnostics already executed).\n## Mitigations to consider\nNone\n## Limits / Unknowns\nGroup sizes for sex.male are below audit_config.min_group_size, which may lead to unstable estimates."
 }

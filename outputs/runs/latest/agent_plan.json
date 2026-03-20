@@ -1,0 +1,16 @@
+{
+  "requested_diagnostics": [
+    {
+      "tool": "run_threshold_sensitivity",
+      "args": {
+        "attribute": "age_group"
+      },
+      "reason": "TPR/FPR disparities are flagged for age_group."
+    },
+    {
+      "tool": "run_slice_scan",
+      "args": {},
+      "reason": "True_positive_rate or false_positive_rate disparity is flagged for an attribute and no slice_scan artifact exists."
+    }
+  ]
+}

@@ -1,12 +1,16 @@
 from __future__ import annotations
-import json, os, yaml
-from typing import Any, Dict, List, Optional, Tuple
+
+import json
+import os
 import urllib.request
+from typing import Any, Dict, List, Optional, Tuple
+
+import yaml
 
 DEFAULT_RUN_DIR = "outputs/runs/latest"
 DEFAULT_MODEL = "llama3.2:3b"
 DEFAULT_CONFIG_PATH = "config/audit_config.yaml"
-OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/chat")
 
 REQUIRED_INPUTS = ["fairness_report.json"]
 
@@ -20,24 +24,28 @@ REQUIRED_OUTPUT_KEYS = [
     "narrative_markdown",
 ]
 
+
 def load_json(path: str) -> Dict[str, Any]:
     if not os.path.exists(path):
         raise FileNotFoundError(f"Missing file: {path}")
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-    
+
+
 def load_yaml(path: str) -> Dict[str, Any]:
     if not os.path.exists(path):
         raise FileNotFoundError(f"Missing file: {path}")
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
-    
+
+
 def write_json(path: str, obj: Dict[str, Any]) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + '.tmp'
+    tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2, ensure_ascii=False)
     os.replace(tmp, path)
+
 
 def write_text(path: str, text: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -54,10 +62,16 @@ def load_evidence(run_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
         if not os.path.exists(path):
             missing.append(fname)
         else:
-            evidence[fname.replace(".json","")] = load_json(path)
-        
-    for opt in ["metrics.json", "diagnosis.json", "group_sizes.json",
-            "proxy_report.json", "distribution_report.json", "slice_report.json"]:
+            evidence[fname.replace(".json", "")] = load_json(path)
+
+    for opt in [
+        "metrics.json",
+        "diagnosis.json",
+        "group_sizes.json",
+        "proxy_report.json",
+        "distribution_report.json",
+        "slice_report.json",
+    ]:
         path = os.path.join(run_dir, opt)
         if os.path.exists(path):
             evidence[opt.replace(".json", "")] = load_json(path)
@@ -79,8 +93,9 @@ def load_evidence(run_dir: str, config: Dict[str, Any]) -> Dict[str, Any]:
     }
     return evidence
 
+
 def build_prompt(evidence: Dict[str, Any]) -> str:
-    cfg = evidence.get("audit_config",{})
+    cfg = evidence.get("audit_config", {})
     threshold = cfg.get("fairness_threshold", 0.05)
     mild = 0.5 * threshold
     moderate = 1.0 * threshold
@@ -103,14 +118,17 @@ STRICT RULES:
 - Do NOT use YAML block scalars like "|" or ">".
 - Do NOT output any YAML.
 - Every string in detected_issues[].evidence MUST cite exact JSON paths like:
-  "fairness_report.sex.difference.selection_rate = 0.1108"
-  "fairness_report.age_group.by_group.true_positive_rate.young = 0.6364"
+  "fairness_report.<attribute>.difference.selection_rate = 0.1108"
+  "fairness_report.<attribute>.by_group.true_positive_rate.<group> = 0.6364"
 - metric must be exactly one of:
     selection_rate
     true_positive_rate
     false_positive_rate
+- Severity MUST be based on fairness_report.<attribute>.difference.<metric>, not by_group values.
+- If you cite by_group values, also cite the corresponding difference path for the same issue.
 - You must compute severity numerically using the thresholds provided.
 - Do not estimate severity heuristically.
+- If group_sizes exists and any group count is below audit_config.min_group_size, include a limits entry noting that estimates for that group may be unstable due to small sample size.
 
 ISSUE TYPE MAPPING:
 - selection_rate -> demographic_disparity
@@ -162,10 +180,11 @@ EVIDENCE JSON:
 {evidence_str}
 """.strip()
 
+
 def call_ollama(model: str, prompt: str, timeout_s: int = 120) -> str:
     payload = {
         "model": model,
-        "format": "json",  
+        "format": "json",
         "messages": [
             {
                 "role": "system",
@@ -189,36 +208,79 @@ def call_ollama(model: str, prompt: str, timeout_s: int = 120) -> str:
     )
 
     with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-        raw = resp.read().decode('utf-8')
+        raw = resp.read().decode("utf-8")
 
     parsed = json.loads(raw)
     return parsed["message"]["content"]
+
 
 def extract_json_object(text: str) -> Optional[str]:
     start = text.find("{")
     end = text.rfind("}")
     if start == -1 or end == -1 or end <= start:
         return None
-    return text[start:end+1]
+    return text[start : end + 1]
+
 
 def validate_agent_output(obj: Dict[str, Any]) -> Tuple[bool, List[str]]:
-    errors = []
+    errors: List[str] = []
+
     for k in REQUIRED_OUTPUT_KEYS:
         if k not in obj:
             errors.append(f"Missing key {k}")
 
-    if "detected_issues" in obj and not isinstance(obj["detected_issues"],list):
+    if "summary" in obj and not isinstance(obj["summary"], str):
+        errors.append("summary must be a string")
+
+    if "detected_issues" in obj and not isinstance(obj["detected_issues"], list):
         errors.append("detected_issues must be a list")
 
     if "narrative_markdown" in obj and not isinstance(obj["narrative_markdown"], str):
         errors.append("narrative_markdown must be a string")
 
+    valid_metrics = {"selection_rate", "true_positive_rate", "false_positive_rate"}
+    valid_severities = {"mild", "moderate", "severe", "unknown"}
+
+    if "detected_issues" in obj and isinstance(obj["detected_issues"], list):
+        for i, issue in enumerate(obj["detected_issues"]):
+            if not isinstance(issue, dict):
+                errors.append(f"detected_issues[{i}] must be an object")
+                continue
+
+            metric = issue.get("metric")
+            severity = issue.get("severity")
+            evidence = issue.get("evidence")
+
+            if metric not in valid_metrics:
+                errors.append(
+                    f"detected_issues[{i}].metric must be one of {sorted(valid_metrics)}"
+                )
+
+            if severity not in valid_severities:
+                errors.append(
+                    f"detected_issues[{i}].severity must be one of {sorted(valid_severities)}"
+                )
+
+            if not isinstance(evidence, list):
+                errors.append(f"detected_issues[{i}].evidence must be a list")
+            else:
+                if not all(isinstance(x, str) for x in evidence):
+                    errors.append(f"detected_issues[{i}].evidence must contain only strings")
+
+    for key in ["likely_causes", "recommended_tests", "mitigations", "limits"]:
+        if key in obj and not isinstance(obj[key], list):
+            errors.append(f"{key} must be a list")
+        elif key in obj and isinstance(obj[key], list):
+            if not all(isinstance(x, str) for x in obj[key]):
+                errors.append(f"{key} must contain only strings")
+
     return (len(errors) == 0), errors
 
+
 def run_agent(
-        run_dir: str = DEFAULT_RUN_DIR,
-        model: str = DEFAULT_MODEL,
-        config_path: str = DEFAULT_CONFIG_PATH
+    run_dir: str = DEFAULT_RUN_DIR,
+    model: str = DEFAULT_MODEL,
+    config_path: str = DEFAULT_CONFIG_PATH,
 ) -> Dict[str, Any]:
     if not os.path.exists(config_path):
         return {
@@ -230,8 +292,10 @@ def run_agent(
             "limits": [f"Config not found: {config_path}"],
             "narrative_markdown": "## Fairness Audit Narrative\n\n### Limits / Unknowns\n- Missing audit_config.yaml\n",
         }
+
     config = load_yaml(config_path)
     evidence = load_evidence(run_dir, config)
+
     if evidence["_meta"]["missing_required"]:
         return {
             "summary": "Insufficient evidence: required input files missing.",
@@ -242,8 +306,10 @@ def run_agent(
             "limits": [f"Missing required files: {', '.join(evidence['_meta']['missing_required'])}"],
             "narrative_markdown": "## Fairness Audit Narrative\n\n### Limits / Unknowns\n- Missing required evidence files.\n",
         }
-    
+
     prompt = build_prompt(evidence)
+    write_text(os.path.join(run_dir, "agent_prompt.txt"), prompt)
+
     raw = call_ollama(model, prompt)
 
     try:
@@ -274,6 +340,7 @@ def run_agent(
                 "limits": ["Failed to parse extracted JSON block."],
                 "narrative_markdown": "## Fairness Audit Narrative\n\n### Limits / Unknowns\n- Could not parse agent JSON.\n",
             }
+
     ok, errors = validate_agent_output(obj)
     if not ok:
         write_text(os.path.join(run_dir, "agent_report_raw.txt"), raw)
@@ -288,6 +355,7 @@ def run_agent(
         }
 
     return obj
+
 
 def main():
     run_dir = os.environ.get("FAIRNESS_RUN_DIR", DEFAULT_RUN_DIR)

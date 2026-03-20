@@ -1,12 +1,38 @@
 dataset:
-  source: uci_german_credit   # descriptive label (optional)
+  path: data/german.data
+  format: delimited
+  sep: '\s+'
+  header: false
+  schema_path: config/schemas/german_credit_schema.json
+  source: uci_german_credit
 
 label_col: credit_risk
 positive_label: good
 
+label_map:
+  "1": good
+  "2": bad
+
 sensitive_cols:
   - sex
   - age_group
+
+derived_columns:
+  sex:
+    type: map
+    source: personal_status_sex
+    mapping:
+      A91: male
+      A92: female
+      A93: male
+      A94: male
+      A95: female
+
+  age_group:
+    type: bin
+    source: age
+    bins: [0, 25, 40, 60, 120]
+    labels: [young, adult, middle, senior]
 
 min_group_size: 30
 fairness_threshold: 0.05

@@ -1,0 +1,4 @@
+{
+  "attribute": "age_group",
+  "error": "Proxy detection currently supports binary attribute only; found 4 groups."
+}

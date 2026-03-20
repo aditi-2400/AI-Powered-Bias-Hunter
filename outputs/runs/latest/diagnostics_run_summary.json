@@ -1,0 +1,17 @@
+{
+  "executed": [
+    {
+      "tool": "run_threshold_sensitivity",
+      "args": {
+        "attribute": "age_group"
+      },
+      "output_file": "outputs/runs/latest/diagnostics/threshold_sensitivity__age_group.json"
+    },
+    {
+      "tool": "run_slice_scan",
+      "args": {},
+      "output_file": "outputs/runs/latest/diagnostics/slice_scan.json"
+    }
+  ],
+  "errors": []
+}

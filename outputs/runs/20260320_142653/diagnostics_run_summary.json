@@ -1,0 +1,19 @@
+{
+  "executed": [
+    {
+      "tool": "run_threshold_sensitivity",
+      "args": {
+        "attribute": "sex"
+      },
+      "output_file": "outputs/runs/20260320_142653/diagnostics/threshold_sensitivity__sex.json"
+    },
+    {
+      "tool": "run_proxy_detection",
+      "args": {
+        "attribute": "age_group"
+      },
+      "output_file": "outputs/runs/20260320_142653/diagnostics/proxy_detection__age_group.json"
+    }
+  ],
+  "errors": []
+}
