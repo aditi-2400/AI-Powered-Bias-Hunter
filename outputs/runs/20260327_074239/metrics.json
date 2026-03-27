@@ -1,0 +1,17 @@
+{
+  "accuracy": 0.724,
+  "n_train": 750,
+  "n_test": 250,
+  "model_type": "logistic_regression",
+  "label_col": "credit_risk",
+  "positive_label": "good",
+  "sensitive_cols": [
+    "sex",
+    "age_group"
+  ],
+  "has_y_score": true,
+  "model_classes": [
+    "bad",
+    "good"
+  ]
+}

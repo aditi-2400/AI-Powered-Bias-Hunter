@@ -1,0 +1,189 @@
+You are an AI fairness audit planner. You will receive JSON evidence produced by a deterministic pipeline.
+
+    GOAL:
+    Choose the most useful next deterministic diagnostics to run that have NOT already been executed.
+
+    STRICT RULES:
+    - Use ONLY the provided JSON evidence. Do NOT invent numbers.
+    - Output MUST be valid JSON (one top-level object) and NOTHING else.
+    - Return only diagnostics from this allowed set:
+    - check_group_sample_sizes
+    - run_feature_distribution_comparison
+    - run_proxy_detection
+    - run_slice_scan
+    - run_threshold_sensitivity
+    - Tool names MUST be exactly one of the allowed names above.
+    - Put the sensitive attribute only inside args, never inside the tool name.
+    - Example valid request:
+    {"tool": "run_threshold_sensitivity", "args": {"attribute": "<sensitive_attribute>"}, "reason": "TPR/FPR disparities are flagged for this attribute."}
+    - Example invalid request:
+    {"tool": "run_threshold_sensitivity__<sensitive_attribute>", "args": {"attribute": "<sensitive_attribute>"}, "reason": "..." }
+    - Do NOT request the same tool multiple times with identical args.
+    - If no additional diagnostics are needed, return an empty list.
+    - Prefer targeted diagnostics tied to flagged disparities.
+    - Do NOT request diagnostics that have already been run and whose artifacts are already present in evidence.
+    - If group_sizes exists, do NOT request check_group_sample_sizes again.
+    - If diagnostics.feature_distribution__<attribute> exists, do NOT request run_feature_distribution_comparison again for that attribute.
+    - If diagnostics.proxy_detection__<attribute> exists, do NOT request run_proxy_detection again for that attribute.
+    - If diagnostics.threshold_sensitivity__<attribute> exists, do NOT request run_threshold_sensitivity again for that attribute.
+    - If diagnostics.slice_scan exists, do NOT request run_slice_scan again.
+    - If group_sizes exists and any group count is below audit_config.min_group_size, use that as planning context rather than requesting check_group_sample_sizes again.
+    - If selection_rate disparity is flagged for an attribute and no feature_distribution artifact exists for that attribute, consider run_feature_distribution_comparison and run_proxy_detection for that attribute.
+    - If true_positive_rate or false_positive_rate disparity is flagged for an attribute and metrics.has_y_score is true and no threshold_sensitivity artifact exists for that attribute, consider run_threshold_sensitivity for that attribute.
+    - If true_positive_rate or false_positive_rate disparity is flagged for an attribute and no slice_scan artifact exists, consider run_slice_scan.
+    - For tool args:
+    - check_group_sample_sizes uses {}
+    - run_feature_distribution_comparison may use {"attribute": "<sensitive_attribute>"}
+    - run_proxy_detection may use {"attribute": "<sensitive_attribute>"}
+    - run_slice_scan may use {}
+    - run_threshold_sensitivity may use {"attribute": "<sensitive_attribute>"}
+
+    PROJECT CONTEXT:
+    - fairness_threshold = 0.05
+    - If metrics.has_y_score is true, threshold sensitivity can be run.
+
+    OUTPUT JSON SCHEMA:
+    {
+    "requested_diagnostics": [
+        {
+        "tool": string,
+        "args": object,
+        "reason": string
+        }
+    ]
+    }
+
+    EVIDENCE JSON:
+    {
+  "fairness_report": {
+    "sex": {
+      "by_group": {
+        "selection_rate": {
+          "female": 0.6883116883116883,
+          "male": 0.791907514450867
+        },
+        "true_positive_rate": {
+          "female": 0.7692307692307693,
+          "male": 0.8780487804878049
+        },
+        "false_positive_rate": {
+          "female": 0.52,
+          "male": 0.58
+        }
+      },
+      "difference": {
+        "selection_rate": 0.10359582613917873,
+        "true_positive_rate": 0.10881801125703561,
+        "false_positive_rate": 0.05999999999999994
+      },
+      "ratio": {
+        "selection_rate": 0.8691819129775334,
+        "true_positive_rate": 0.8760683760683761,
+        "false_positive_rate": 0.8965517241379312
+      },
+      "flags": {
+        "selection_rate": true,
+        "true_positive_rate": true,
+        "false_positive_rate": true
+      }
+    },
+    "age_group": {
+      "by_group": {
+        "selection_rate": {
+          "adult": 0.8,
+          "middle": 0.703125,
+          "senior": 1.0,
+          "young": 0.6585365853658537
+        },
+        "true_positive_rate": {
+          "adult": 0.8627450980392157,
+          "middle": 0.8604651162790697,
+          "senior": 1.0,
+          "young": 0.6818181818181818
+        },
+        "false_positive_rate": {
+          "adult": 0.6060606060606061,
+          "middle": 0.38095238095238093,
+          "senior": 1.0,
+          "young": 0.631578947368421
+        }
+      },
+      "difference": {
+        "selection_rate": 0.3414634146341463,
+        "true_positive_rate": 0.31818181818181823,
+        "false_positive_rate": 0.6190476190476191
+      },
+      "ratio": {
+        "selection_rate": 0.6585365853658537,
+        "true_positive_rate": 0.6818181818181818,
+        "false_positive_rate": 0.38095238095238093
+      },
+      "flags": {
+        "selection_rate": true,
+        "true_positive_rate": true,
+        "false_positive_rate": true
+      }
+    }
+  },
+  "metrics": {
+    "accuracy": 0.724,
+    "n_train": 750,
+    "n_test": 250,
+    "model_type": "logistic_regression",
+    "label_col": "credit_risk",
+    "positive_label": "good",
+    "sensitive_cols": [
+      "sex",
+      "age_group"
+    ],
+    "has_y_score": true,
+    "model_classes": [
+      "bad",
+      "good"
+    ]
+  },
+  "group_sizes": {
+    "sex": {
+      "male": 173,
+      "female": 77
+    },
+    "age_group": {
+      "adult": 135,
+      "middle": 64,
+      "young": 41,
+      "senior": 10
+    }
+  },
+  "audit_config": {
+    "dataset": {
+      "path": "/tmp/bias_hunter_api_uploads/20260327_074239/german.data",
+      "format": "delimited",
+      "sep": "\\s+",
+      "header": false,
+      "schema_path": "config/schemas/german_credit_schema.json",
+      "source": "uci_german_credit"
+    },
+    "label_col": "credit_risk",
+    "positive_label": "good",
+    "sensitive_cols": [
+      "sex",
+      "age_group"
+    ],
+    "min_group_size": 30,
+    "fairness_threshold": 0.05,
+    "model": {
+      "type": "logistic_regression",
+      "max_iter": 2000
+    }
+  },
+  "_meta": {
+    "run_dir": "outputs/runs/20260327_074239",
+    "missing_required": [],
+    "loaded": [
+      "audit_config",
+      "fairness_report",
+      "group_sizes",
+      "metrics"
+    ]
+  }
+}

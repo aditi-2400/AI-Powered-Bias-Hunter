@@ -1,0 +1,12 @@
+{
+  "sex": {
+    "male": 173,
+    "female": 77
+  },
+  "age_group": {
+    "adult": 135,
+    "middle": 64,
+    "young": 41,
+    "senior": 10
+  }
+}

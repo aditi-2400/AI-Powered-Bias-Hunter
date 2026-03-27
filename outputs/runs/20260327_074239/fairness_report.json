@@ -1,0 +1,70 @@
+{
+  "sex": {
+    "by_group": {
+      "selection_rate": {
+        "female": 0.6883116883116883,
+        "male": 0.791907514450867
+      },
+      "true_positive_rate": {
+        "female": 0.7692307692307693,
+        "male": 0.8780487804878049
+      },
+      "false_positive_rate": {
+        "female": 0.52,
+        "male": 0.58
+      }
+    },
+    "difference": {
+      "selection_rate": 0.10359582613917873,
+      "true_positive_rate": 0.10881801125703561,
+      "false_positive_rate": 0.05999999999999994
+    },
+    "ratio": {
+      "selection_rate": 0.8691819129775334,
+      "true_positive_rate": 0.8760683760683761,
+      "false_positive_rate": 0.8965517241379312
+    },
+    "flags": {
+      "selection_rate": true,
+      "true_positive_rate": true,
+      "false_positive_rate": true
+    }
+  },
+  "age_group": {
+    "by_group": {
+      "selection_rate": {
+        "adult": 0.8,
+        "middle": 0.703125,
+        "senior": 1.0,
+        "young": 0.6585365853658537
+      },
+      "true_positive_rate": {
+        "adult": 0.8627450980392157,
+        "middle": 0.8604651162790697,
+        "senior": 1.0,
+        "young": 0.6818181818181818
+      },
+      "false_positive_rate": {
+        "adult": 0.6060606060606061,
+        "middle": 0.38095238095238093,
+        "senior": 1.0,
+        "young": 0.631578947368421
+      }
+    },
+    "difference": {
+      "selection_rate": 0.3414634146341463,
+      "true_positive_rate": 0.31818181818181823,
+      "false_positive_rate": 0.6190476190476191
+    },
+    "ratio": {
+      "selection_rate": 0.6585365853658537,
+      "true_positive_rate": 0.6818181818181818,
+      "false_positive_rate": 0.38095238095238093
+    },
+    "flags": {
+      "selection_rate": true,
+      "true_positive_rate": true,
+      "false_positive_rate": true
+    }
+  }
+}
