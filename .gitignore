@@ -208,3 +208,5 @@ __marimo__/
 
 to-do.txt
 data/german.data
+frontend/node_modules/
+node_modules/

@@ -1,0 +1,11 @@
+fairlearn
+fastapi
+matplotlib
+numpy
+pandas
+pydantic
+python-multipart
+PyYAML
+scikit-learn
+streamlit
+uvicorn
