@@ -28,6 +28,53 @@ REQUIRED_OUTPUT_KEYS = [
 ]
 
 
+def classify_severity(difference: Any, threshold: float) -> str:
+    try:
+        value = float(difference)
+    except (TypeError, ValueError):
+        return "unknown"
+
+    mild = 0.5 * threshold
+    moderate = 1.0 * threshold
+    severe = 2.0 * threshold
+
+    if value >= severe:
+        return "severe"
+    if value >= moderate:
+        return "moderate"
+    if value >= mild:
+        return "mild"
+    return "unknown"
+
+
+def normalize_issue_severities(obj: Dict[str, Any], evidence: Dict[str, Any]) -> Dict[str, Any]:
+    issues = obj.get("detected_issues")
+    if not isinstance(issues, list):
+        return obj
+
+    fairness_report = evidence.get("fairness_report", {}) or {}
+    cfg = evidence.get("audit_config", {}) or {}
+    threshold = float(cfg.get("fairness_threshold", 0.05))
+
+    for issue in issues:
+        if not isinstance(issue, dict):
+            continue
+        attribute = issue.get("attribute")
+        metric = issue.get("metric")
+        if not isinstance(attribute, str) or not isinstance(metric, str):
+            issue["severity"] = "unknown"
+            continue
+
+        diff = (
+            fairness_report.get(attribute, {})
+            .get("difference", {})
+            .get(metric)
+        )
+        issue["severity"] = classify_severity(diff, threshold)
+
+    return obj
+
+
 def _normalize_test_name(name: str) -> str:
     cleaned = name.strip()
     if cleaned.startswith("run_"):
@@ -354,6 +401,7 @@ def run_agent_report(
             "narrative_markdown": "## Fairness Audit Narrative\n\n### Limits / Unknowns\n- Agent output failed schema validation.\n",
         }
 
+    obj = normalize_issue_severities(obj, evidence)
     obj = filter_recommended_tests(obj, evidence)
     obj = harmonize_narrative_markdown(obj, evidence)
     return obj

@@ -5,7 +5,7 @@
       "attribute": "sex",
       "metric": "selection_rate",
       "issue_type": "demographic_disparity",
-      "severity": "moderate",
+      "severity": "severe",
       "evidence": [
         "fairness_report.sex.by_group.selection_rate.female = 0.6883116883116883",
         "fairness_report.sex.by_group.selection_rate.male = 0.791907514450867"
@@ -15,7 +15,7 @@
       "attribute": "sex",
       "metric": "true_positive_rate",
       "issue_type": "unequal_opportunity",
-      "severity": "mild",
+      "severity": "severe",
       "evidence": [
         "fairness_report.sex.by_group.true_positive_rate.female = 0.7692307692307693",
         "fairness_report.sex.by_group.true_positive_rate.male = 0.8780487804878049"
@@ -25,7 +25,7 @@
       "attribute": "age_group",
       "metric": "selection_rate",
       "issue_type": "demographic_disparity",
-      "severity": "mild",
+      "severity": "severe",
       "evidence": [
         "fairness_report.age_group.by_group.selection_rate.adult = 0.8",
         "fairness_report.age_group.by_group.selection_rate.young = 0.6585365853658537"
@@ -35,7 +35,7 @@
       "attribute": "age_group",
       "metric": "true_positive_rate",
       "issue_type": "unequal_opportunity",
-      "severity": "moderate",
+      "severity": "severe",
       "evidence": [
         "fairness_report.age_group.by_group.true_positive_rate.adult = 0.8627450980392157",
         "fairness_report.age_group.by_group.true_positive_rate.young = 0.6818181818181818"
@@ -43,18 +43,17 @@
     }
   ],
   "likely_causes": [
-    "TPR/FPR disparities are flagged for the 'sex' attribute due to proxy detection.",
-    "Selection rate disparity is flagged for the 'age_group' attribute and no feature_distribution artifact exists."
+    "TPR/FPR disparities are flagged for the 'sex' attribute due to threshold_sensitivity__age_group diagnostics."
   ],
   "recommended_tests": [
-    "run_feature_distribution_comparison"
+    "run_feature_distribution_comparison sex",
+    "run_proxy_detection age_group"
   ],
   "mitigations": [
-    "Consider using data preprocessing techniques to address demographic disparities in the 'sex' attribute.",
-    "Consider using feature engineering techniques to address selection rate disparity in the 'age_group' attribute."
+    "Consider using data augmentation techniques to reduce selection rate disparity for the 'sex' attribute."
   ],
   "limits": [
-    "Estimates for the 'young' group may be unstable due to small sample size (n = 41)."
+    "Estimates for the 'young' group in the 'age_group' attribute may be unstable due to small sample size (n = 41)."
   ],
-  "narrative_markdown": "# Fairness Audit Narrative\n## What we found\nWe detected several fairness issues in the model, including demographic disparities and unequal opportunities.\n## Evidence (numbers)\n* Selection rate disparity for 'sex' attribute: 0.10359582613917873\n* True positive rate disparity for 'sex' attribute: 0.10881801125703561\n* Selection rate disparity for 'age_group' attribute: 0.3414634146341463\n* True positive rate disparity for 'age_group' attribute: 0.31818181818181823\n## Likely causes (hypotheses)\n* TPR/FPR disparities are flagged for the 'sex' attribute due to proxy detection.\n* Selection rate disparity is flagged for the 'age_group' attribute and no feature_distribution artifact exists.\n## Recommended next tests\n- run_feature_distribution_comparison\n## Mitigations to consider\n* Consider using data preprocessing techniques to address demographic disparities in the 'sex' attribute.\n* Consider using feature engineering techniques to address selection rate disparity in the 'age_group' attribute.\n## Limits / Unknowns\n* Estimates for the 'young' group may be unstable due to small sample size (n = 41)."
+  "narrative_markdown": "# Fairness Audit Narrative\n## What we found\nWe detected several fairness issues with the model, including demographic disparities and unequal opportunities.\n## Evidence (numbers)\n* Selection rate disparity for 'sex' attribute: 0.10359582613917873\n* True positive rate disparity for 'sex' attribute: 0.10881801125703561\n* Selection rate disparity for 'age_group' attribute: 0.3414634146341463\n* True positive rate disparity for 'age_group' attribute: 0.31818181818181823\n## Likely causes (hypotheses)\nTPR/FPR disparities are flagged for the 'sex' attribute due to threshold_sensitivity__age_group diagnostics.\n## Recommended next tests\n- run_feature_distribution_comparison sex\n- run_proxy_detection age_group\n## Mitigations to consider\nConsider using data augmentation techniques to reduce selection rate disparity for the 'sex' attribute.\n## Limits / Unknowns\nEstimates for the 'young' group in the 'age_group' attribute may be unstable due to small sample size (n = 41)."
 }

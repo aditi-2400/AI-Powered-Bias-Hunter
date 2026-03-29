@@ -18,8 +18,8 @@ STRICT RULES:
 - Do NOT use YAML block scalars like "|" or ">".
 - Do NOT output any YAML.
 - Every string in detected_issues[].evidence MUST cite exact JSON paths like:
-  "fairness_report.sex.difference.selection_rate = 0.1108"
-  "fairness_report.age_group.by_group.true_positive_rate.young = 0.6364"
+  "fairness_report.<attribute>.difference.selection_rate = 0.1108"
+  "fairness_report.<attribute>.by_group.true_positive_rate.<group> = 0.6364"
 - metric must be exactly one of:
     selection_rate
     true_positive_rate
@@ -193,14 +193,16 @@ EVIDENCE JSON:
       {
         "tool": "run_threshold_sensitivity",
         "args": {
-          "attribute": "age_group"
+          "attribute": "sex"
         },
-        "reason": "TPR/FPR disparities are flagged for age_group."
+        "reason": "TPR/FPR disparities are flagged for this attribute."
       },
       {
-        "tool": "run_slice_scan",
-        "args": {},
-        "reason": "True_positive_rate or false_positive_rate disparity is flagged for an attribute and no slice_scan artifact exists."
+        "tool": "run_proxy_detection",
+        "args": {
+          "attribute": "age_group"
+        },
+        "reason": "Selection rate disparity is flagged for this attribute and no feature_distribution artifact exists."
       }
     ]
   },
