@@ -70,7 +70,7 @@ def load_dataset_from_config(config: dict, dataset_path: str | None = None) -> p
     df = pd.read_csv(
         path, 
         sep=sep, 
-        header=header if header else None,
+        header=0 if header else None,
         names = columns if not header else None,
         na_values=na_values,
         encoding=encoding,

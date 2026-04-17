@@ -1,0 +1,44 @@
+{
+  "summary": "Fairness Audit Report",
+  "detected_issues": [
+    {
+      "attribute": "gender",
+      "metric": "selection_rate",
+      "issue_type": "demographic_disparity",
+      "severity": "unknown",
+      "evidence": [
+        "fairness_report.gender.selection_rate.difference = 0.0"
+      ]
+    },
+    {
+      "attribute": "race",
+      "metric": "true_positive_rate",
+      "issue_type": "unequal_opportunity",
+      "severity": "unknown",
+      "evidence": [
+        "fairness_report.race.true_positive_rate.difference = 0.0",
+        "group_sizes.race.White = 10437, Black = 1179"
+      ]
+    },
+    {
+      "attribute": "age_group",
+      "metric": "selection_rate",
+      "issue_type": "demographic_disparity",
+      "severity": "unknown",
+      "evidence": [
+        "fairness_report.age_group.selection_rate.difference = 0.0"
+      ]
+    }
+  ],
+  "likely_causes": [
+    "TPR/FPR disparities are flagged for the gender attribute."
+  ],
+  "recommended_tests": [
+    "run_feature_distribution_comparison"
+  ],
+  "mitigations": [],
+  "limits": [
+    "Estimates for groups with small sample sizes (e.g., Amer-Indian-Eskimo, Asian-Pac-Islander) may be unstable."
+  ],
+  "narrative_markdown": "# Fairness Audit Narrative\n## What we found\nNo demographic disparities were detected in the selection rates of gender and age_group attributes.\n## Evidence (numbers)\nNo evidence of demographic disparities was found in the fairness report.\n## Likely causes (hypotheses)\nTPR/FPR disparities are flagged for the gender attribute.\n## Recommended next tests\n- run_feature_distribution_comparison\n## Mitigations to consider\nNo mitigations are necessary at this time.\n## Limits / Unknowns\nEstimates for groups with small sample sizes (e.g., Amer-Indian-Eskimo, Asian-Pac-Islander) may be unstable."
+}

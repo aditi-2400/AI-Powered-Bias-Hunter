@@ -250,3 +250,6 @@ bias-hunter/
 
 ## One-Line Summary
 An automated fairness auditor that not only measures disparities but interprets and explains them.
+
+## Dashboard
+![alt text](image.png)

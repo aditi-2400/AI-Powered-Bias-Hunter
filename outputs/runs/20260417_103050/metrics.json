@@ -4,7 +4,7 @@
   "n_test": 12211,
   "model_type": "logistic_regression",
   "label_col": "income",
-  "positive_label": "high_income",
+  "positive_label": ">50K",
   "sensitive_cols": [
     "gender",
     "race",

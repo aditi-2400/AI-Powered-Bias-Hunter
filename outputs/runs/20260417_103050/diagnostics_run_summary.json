@@ -1,0 +1,19 @@
+{
+  "executed": [
+    {
+      "tool": "run_proxy_detection",
+      "args": {
+        "attribute": "gender"
+      },
+      "output_file": "outputs/runs/20260417_103050/diagnostics/proxy_detection__gender.json"
+    },
+    {
+      "tool": "run_feature_distribution_comparison",
+      "args": {
+        "attribute": "race"
+      },
+      "output_file": "outputs/runs/20260417_103050/diagnostics/feature_distribution__race.json"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,237 @@
+You are an AI fairness audit planner. You will receive JSON evidence produced by a deterministic pipeline.
+
+    GOAL:
+    Choose the most useful next deterministic diagnostics to run that have NOT already been executed.
+
+    STRICT RULES:
+    - Use ONLY the provided JSON evidence. Do NOT invent numbers.
+    - Output MUST be valid JSON (one top-level object) and NOTHING else.
+    - Return only diagnostics from this allowed set:
+    - check_group_sample_sizes
+    - run_feature_distribution_comparison
+    - run_proxy_detection
+    - run_slice_scan
+    - run_threshold_sensitivity
+    - Tool names MUST be exactly one of the allowed names above.
+    - Put the sensitive attribute only inside args, never inside the tool name.
+    - Example valid request:
+    {"tool": "run_threshold_sensitivity", "args": {"attribute": "<sensitive_attribute>"}, "reason": "TPR/FPR disparities are flagged for this attribute."}
+    - Example invalid request:
+    {"tool": "run_threshold_sensitivity__<sensitive_attribute>", "args": {"attribute": "<sensitive_attribute>"}, "reason": "..." }
+    - Do NOT request the same tool multiple times with identical args.
+    - If no additional diagnostics are needed, return an empty list.
+    - Prefer targeted diagnostics tied to flagged disparities.
+    - Do NOT request diagnostics that have already been run and whose artifacts are already present in evidence.
+    - If group_sizes exists, do NOT request check_group_sample_sizes again.
+    - If diagnostics.feature_distribution__<attribute> exists, do NOT request run_feature_distribution_comparison again for that attribute.
+    - If diagnostics.proxy_detection__<attribute> exists, do NOT request run_proxy_detection again for that attribute.
+    - If diagnostics.threshold_sensitivity__<attribute> exists, do NOT request run_threshold_sensitivity again for that attribute.
+    - If diagnostics.slice_scan exists, do NOT request run_slice_scan again.
+    - If group_sizes exists and any group count is below audit_config.min_group_size, use that as planning context rather than requesting check_group_sample_sizes again.
+    - If selection_rate disparity is flagged for an attribute and no feature_distribution artifact exists for that attribute, consider run_feature_distribution_comparison and run_proxy_detection for that attribute.
+    - If true_positive_rate or false_positive_rate disparity is flagged for an attribute and metrics.has_y_score is true and no threshold_sensitivity artifact exists for that attribute, consider run_threshold_sensitivity for that attribute.
+    - If true_positive_rate or false_positive_rate disparity is flagged for an attribute and no slice_scan artifact exists, consider run_slice_scan.
+    - For tool args:
+    - check_group_sample_sizes uses {}
+    - run_feature_distribution_comparison may use {"attribute": "<sensitive_attribute>"}
+    - run_proxy_detection may use {"attribute": "<sensitive_attribute>"}
+    - run_slice_scan may use {}
+    - run_threshold_sensitivity may use {"attribute": "<sensitive_attribute>"}
+
+    PROJECT CONTEXT:
+    - fairness_threshold = 0.05
+    - If metrics.has_y_score is true, threshold sensitivity can be run.
+
+    OUTPUT JSON SCHEMA:
+    {
+    "requested_diagnostics": [
+        {
+        "tool": string,
+        "args": object,
+        "reason": string
+        }
+    ]
+    }
+
+    EVIDENCE JSON:
+    {
+  "fairness_report": {
+    "gender": {
+      "by_group": {
+        "selection_rate": {
+          "Female": 0.0,
+          "Male": 0.0
+        },
+        "true_positive_rate": {
+          "Female": 0.0,
+          "Male": 0.0
+        },
+        "false_positive_rate": {
+          "Female": 0.0,
+          "Male": 0.0
+        }
+      },
+      "difference": {
+        "selection_rate": 0.0,
+        "true_positive_rate": 0.0,
+        "false_positive_rate": 0.0
+      },
+      "ratio": {
+        "selection_rate": NaN,
+        "true_positive_rate": NaN,
+        "false_positive_rate": NaN
+      },
+      "flags": {
+        "selection_rate": false,
+        "true_positive_rate": false,
+        "false_positive_rate": false
+      }
+    },
+    "race": {
+      "by_group": {
+        "selection_rate": {
+          "Amer-Indian-Eskimo": 0.0,
+          "Asian-Pac-Islander": 0.0,
+          "Black": 0.0,
+          "Other": 0.0,
+          "White": 0.0
+        },
+        "true_positive_rate": {
+          "Amer-Indian-Eskimo": 0.0,
+          "Asian-Pac-Islander": 0.0,
+          "Black": 0.0,
+          "Other": 0.0,
+          "White": 0.0
+        },
+        "false_positive_rate": {
+          "Amer-Indian-Eskimo": 0.0,
+          "Asian-Pac-Islander": 0.0,
+          "Black": 0.0,
+          "Other": 0.0,
+          "White": 0.0
+        }
+      },
+      "difference": {
+        "selection_rate": 0.0,
+        "true_positive_rate": 0.0,
+        "false_positive_rate": 0.0
+      },
+      "ratio": {
+        "selection_rate": NaN,
+        "true_positive_rate": NaN,
+        "false_positive_rate": NaN
+      },
+      "flags": {
+        "selection_rate": false,
+        "true_positive_rate": false,
+        "false_positive_rate": false
+      }
+    },
+    "age_group": {
+      "by_group": {
+        "selection_rate": {
+          "adult": 0.0,
+          "middle": 0.0,
+          "senior": 0.0,
+          "young": 0.0
+        },
+        "true_positive_rate": {
+          "adult": 0.0,
+          "middle": 0.0,
+          "senior": 0.0,
+          "young": 0.0
+        },
+        "false_positive_rate": {
+          "adult": 0.0,
+          "middle": 0.0,
+          "senior": 0.0,
+          "young": 0.0
+        }
+      },
+      "difference": {
+        "selection_rate": 0.0,
+        "true_positive_rate": 0.0,
+        "false_positive_rate": 0.0
+      },
+      "ratio": {
+        "selection_rate": NaN,
+        "true_positive_rate": NaN,
+        "false_positive_rate": NaN
+      },
+      "flags": {
+        "selection_rate": false,
+        "true_positive_rate": false,
+        "false_positive_rate": false
+      }
+    }
+  },
+  "metrics": {
+    "accuracy": 0.8507902710670707,
+    "n_train": 36631,
+    "n_test": 12211,
+    "model_type": "logistic_regression",
+    "label_col": "income",
+    "positive_label": ">50K",
+    "sensitive_cols": [
+      "gender",
+      "race",
+      "age_group"
+    ],
+    "has_y_score": true,
+    "model_classes": [
+      "high_income",
+      "low_income"
+    ]
+  },
+  "group_sizes": {
+    "gender": {
+      "Male": 8178,
+      "Female": 4033
+    },
+    "race": {
+      "White": 10437,
+      "Black": 1179,
+      "Asian-Pac-Islander": 370,
+      "Amer-Indian-Eskimo": 119,
+      "Other": 106
+    },
+    "age_group": {
+      "adult": 4761,
+      "middle": 4182,
+      "young": 2378,
+      "senior": 890
+    }
+  },
+  "audit_config": {
+    "dataset": {
+      "path": "/tmp/bias_hunter_api_uploads/20260417_103049/adult.csv",
+      "format": "csv",
+      "sep": ",",
+      "header": true,
+      "source": "uci_adult_income"
+    },
+    "label_col": "income",
+    "positive_label": ">50K",
+    "sensitive_cols": [
+      "gender",
+      "race",
+      "age_group"
+    ],
+    "min_group_size": 30,
+    "fairness_threshold": 0.05,
+    "model": {
+      "type": "logistic_regression",
+      "max_iter": 2000
+    }
+  },
+  "_meta": {
+    "run_dir": "outputs/runs/20260417_103050",
+    "missing_required": [],
+    "loaded": [
+      "audit_config",
+      "fairness_report",
+      "group_sizes",
+      "metrics"
+    ]
+  }
+}

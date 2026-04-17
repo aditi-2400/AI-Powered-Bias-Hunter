@@ -1,0 +1,110 @@
+{
+  "gender": {
+    "by_group": {
+      "selection_rate": {
+        "Female": 0.0,
+        "Male": 0.0
+      },
+      "true_positive_rate": {
+        "Female": 0.0,
+        "Male": 0.0
+      },
+      "false_positive_rate": {
+        "Female": 0.0,
+        "Male": 0.0
+      }
+    },
+    "difference": {
+      "selection_rate": 0.0,
+      "true_positive_rate": 0.0,
+      "false_positive_rate": 0.0
+    },
+    "ratio": {
+      "selection_rate": NaN,
+      "true_positive_rate": NaN,
+      "false_positive_rate": NaN
+    },
+    "flags": {
+      "selection_rate": false,
+      "true_positive_rate": false,
+      "false_positive_rate": false
+    }
+  },
+  "race": {
+    "by_group": {
+      "selection_rate": {
+        "Amer-Indian-Eskimo": 0.0,
+        "Asian-Pac-Islander": 0.0,
+        "Black": 0.0,
+        "Other": 0.0,
+        "White": 0.0
+      },
+      "true_positive_rate": {
+        "Amer-Indian-Eskimo": 0.0,
+        "Asian-Pac-Islander": 0.0,
+        "Black": 0.0,
+        "Other": 0.0,
+        "White": 0.0
+      },
+      "false_positive_rate": {
+        "Amer-Indian-Eskimo": 0.0,
+        "Asian-Pac-Islander": 0.0,
+        "Black": 0.0,
+        "Other": 0.0,
+        "White": 0.0
+      }
+    },
+    "difference": {
+      "selection_rate": 0.0,
+      "true_positive_rate": 0.0,
+      "false_positive_rate": 0.0
+    },
+    "ratio": {
+      "selection_rate": NaN,
+      "true_positive_rate": NaN,
+      "false_positive_rate": NaN
+    },
+    "flags": {
+      "selection_rate": false,
+      "true_positive_rate": false,
+      "false_positive_rate": false
+    }
+  },
+  "age_group": {
+    "by_group": {
+      "selection_rate": {
+        "adult": 0.0,
+        "middle": 0.0,
+        "senior": 0.0,
+        "young": 0.0
+      },
+      "true_positive_rate": {
+        "adult": 0.0,
+        "middle": 0.0,
+        "senior": 0.0,
+        "young": 0.0
+      },
+      "false_positive_rate": {
+        "adult": 0.0,
+        "middle": 0.0,
+        "senior": 0.0,
+        "young": 0.0
+      }
+    },
+    "difference": {
+      "selection_rate": 0.0,
+      "true_positive_rate": 0.0,
+      "false_positive_rate": 0.0
+    },
+    "ratio": {
+      "selection_rate": NaN,
+      "true_positive_rate": NaN,
+      "false_positive_rate": NaN
+    },
+    "flags": {
+      "selection_rate": false,
+      "true_positive_rate": false,
+      "false_positive_rate": false
+    }
+  }
+}

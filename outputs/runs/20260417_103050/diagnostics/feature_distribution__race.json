@@ -1,0 +1,186 @@
+{
+  "attribute": "race",
+  "compared_groups": [
+    "White",
+    "Black"
+  ],
+  "group_counts": {
+    "White": 10437,
+    "Black": 1179,
+    "Asian-Pac-Islander": 370,
+    "Amer-Indian-Eskimo": 119,
+    "Other": 106
+  },
+  "top_numeric_shifts": [
+    {
+      "feature": "fnlwgt",
+      "group_a": "White",
+      "group_b": "Black",
+      "mean_a": 186722.42148126857,
+      "mean_b": 221723.10602205258,
+      "abs_mean_diff": 35000.684540784016
+    },
+    {
+      "feature": "capital-gain",
+      "group_a": "White",
+      "group_b": "Black",
+      "mean_a": 1092.938775510204,
+      "mean_b": 423.0373197625106,
+      "abs_mean_diff": 669.9014557476935
+    },
+    {
+      "feature": "capital-loss",
+      "group_a": "White",
+      "group_b": "Black",
+      "mean_a": 92.521893264348,
+      "mean_b": 61.42324003392706,
+      "abs_mean_diff": 31.098653230420936
+    },
+    {
+      "feature": "hours-per-week",
+      "group_a": "White",
+      "group_b": "Black",
+      "mean_a": 40.48414295295583,
+      "mean_b": 38.74893977947413,
+      "abs_mean_diff": 1.7352031734817004
+    },
+    {
+      "feature": "age",
+      "group_a": "White",
+      "group_b": "Black",
+      "mean_a": 38.89479735556194,
+      "mean_b": 37.48600508905852,
+      "abs_mean_diff": 1.4087922665034185
+    },
+    {
+      "feature": "educational-num",
+      "group_a": "White",
+      "group_b": "Black",
+      "mean_a": 10.157133275845549,
+      "mean_b": 9.49618320610687,
+      "abs_mean_diff": 0.6609500697386785
+    }
+  ],
+  "top_categorical_shifts": [
+    {
+      "feature": "occupation",
+      "group_a": "White",
+      "group_b": "Black",
+      "top_dist_a": {
+        "Exec-managerial": 0.13404234933409984,
+        "Prof-specialty": 0.13183865095333908,
+        "Craft-repair": 0.13126377311487974,
+        "Sales": 0.12455686499952094,
+        "Adm-clerical": 0.1069272779534349
+      },
+      "top_dist_b": {
+        "Other-service": 0.17302798982188294,
+        "Adm-clerical": 0.1662425784563189,
+        "Machine-op-inspct": 0.089058524173028,
+        "?": 0.07972858354537744,
+        "Prof-specialty": 0.07548770144189991
+      },
+      "total_variation_distance": 0.423672167501556
+    },
+    {
+      "feature": "relationship",
+      "group_a": "White",
+      "group_b": "Black",
+      "top_dist_a": {
+        "Husband": 0.4340327680367922,
+        "Not-in-family": 0.2605154737951519,
+        "Own-child": 0.1482226693494299,
+        "Unmarried": 0.0849861071189039,
+        "Wife": 0.04627766599597585
+      },
+      "top_dist_b": {
+        "Not-in-family": 0.26463104325699743,
+        "Unmarried": 0.23155216284987276,
+        "Husband": 0.21289228159457166,
+        "Own-child": 0.18914334181509754,
+        "Other-relative": 0.056827820186598814
+      },
+      "total_variation_distance": 0.2579241351416386
+    },
+    {
+      "feature": "marital-status",
+      "group_a": "White",
+      "group_b": "Black",
+      "top_dist_a": {
+        "Married-civ-spouse": 0.485484334578902,
+        "Never-married": 0.3129251700680272,
+        "Divorced": 0.13423397528025294,
+        "Widowed": 0.02960620868065536,
+        "Separated": 0.025102998946057296
+      },
+      "top_dist_b": {
+        "Never-married": 0.46055979643765904,
+        "Married-civ-spouse": 0.26208651399491095,
+        "Divorced": 0.14249363867684478,
+        "Separated": 0.07718405428329092,
+        "Widowed": 0.03816793893129771
+      },
+      "total_variation_distance": 0.21996744796904535
+    },
+    {
+      "feature": "education",
+      "group_a": "White",
+      "group_b": "Black",
+      "top_dist_a": {
+        "HS-grad": 0.3146498035834052,
+        "Some-college": 0.2279390629491233,
+        "Bachelors": 0.170355466130114,
+        "Masters": 0.05787103573823896,
+        "Assoc-voc": 0.04493628437290409
+      },
+      "top_dist_b": {
+        "HS-grad": 0.3791348600508906,
+        "Some-college": 0.22900763358778625,
+        "Bachelors": 0.1085665818490246,
+        "11th": 0.05089058524173028,
+        "10th": 0.04495335029686175
+      },
+      "total_variation_distance": 0.1629968835184864
+    },
+    {
+      "feature": "workclass",
+      "group_a": "White",
+      "group_b": "Black",
+      "top_dist_a": {
+        "Private": 0.6913864137204178,
+        "Self-emp-not-inc": 0.08718980549966465,
+        "Local-gov": 0.06352400114975568,
+        "?": 0.05681709303439686,
+        "Self-emp-inc": 0.038037750311392164
+      },
+      "top_dist_b": {
+        "Private": 0.6878710771840543,
+        "Local-gov": 0.089058524173028,
+        "?": 0.07888040712468193,
+        "Federal-gov": 0.0551314673452078,
+        "State-gov": 0.05004240882103478
+      },
+      "total_variation_distance": 0.14075730281361012
+    },
+    {
+      "feature": "native-country",
+      "group_a": "White",
+      "group_b": "Black",
+      "top_dist_a": {
+        "United-States": 0.9240203123502922,
+        "Mexico": 0.01849190380377503,
+        "?": 0.01303056433841142,
+        "Germany": 0.004503209734598065,
+        "Canada": 0.004024144869215292
+      },
+      "top_dist_b": {
+        "United-States": 0.90754877014419,
+        "?": 0.032230703986429174,
+        "Jamaica": 0.017811704834605598,
+        "Haiti": 0.013570822731128074,
+        "Trinadad&Tobago": 0.006785411365564037
+      },
+      "total_variation_distance": 0.05042943959650305
+    }
+  ]
+}

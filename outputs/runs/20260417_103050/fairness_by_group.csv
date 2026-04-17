@@ -1,0 +1,12 @@
+sensitive_attribute,group,selection_rate,true_positive_rate,false_positive_rate
+gender,Female,0.0,0.0,0.0
+gender,Male,0.0,0.0,0.0
+race,Amer-Indian-Eskimo,0.0,0.0,0.0
+race,Asian-Pac-Islander,0.0,0.0,0.0
+race,Black,0.0,0.0,0.0
+race,Other,0.0,0.0,0.0
+race,White,0.0,0.0,0.0
+age_group,adult,0.0,0.0,0.0
+age_group,middle,0.0,0.0,0.0
+age_group,senior,0.0,0.0,0.0
+age_group,young,0.0,0.0,0.0

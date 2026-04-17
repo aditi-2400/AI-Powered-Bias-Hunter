@@ -1,0 +1,261 @@
+You are an AI fairness auditor. You will receive JSON evidence produced by a deterministic pipeline.
+
+GOAL:
+Write a final fairness report for a human reader using:
+- fairness metrics
+- group sizes
+- any diagnostics that were already executed
+- the planning context if agent_plan is present
+
+STRICT RULES:
+- Use ONLY the provided JSON evidence. Do NOT invent numbers.
+- Do NOT compute new metrics. Only interpret what exists.
+- If evidence is missing for a claim, write "insufficient evidence" in limits.
+- Output MUST be valid JSON (one top-level object) and NOTHING else.
+- narrative_markdown MUST be a valid JSON string (use \n for new lines).
+- Do NOT use triple quotes """.
+- Do NOT use ``` fences.
+- Do NOT use YAML block scalars like "|" or ">".
+- Do NOT output any YAML.
+- Every string in detected_issues[].evidence MUST cite exact JSON paths like:
+  "fairness_report.<attribute>.difference.selection_rate = 0.1108"
+  "fairness_report.<attribute>.by_group.true_positive_rate.<group> = 0.6364"
+- metric must be exactly one of:
+    selection_rate
+    true_positive_rate
+    false_positive_rate
+- Severity MUST be based on fairness_report.<attribute>.difference.<metric>, not by_group values.
+- If you cite by_group values, also cite the corresponding difference path for the same issue.
+- You must compute severity numerically using the thresholds provided.
+- Do not estimate severity heuristically.
+- If group_sizes exists and any group count is below audit_config.min_group_size, include a limits entry noting that estimates for that group may be unstable due to small sample size.
+- If agent_plan exists, use it only as planning context; do not claim a diagnostic was run unless its artifact is present in evidence.
+- If diagnostics or diagnostic artifacts are present, use them when explaining likely causes, mitigations, and limits.
+- Distinguish clearly between:
+  - findings supported by fairness_report
+  - hypotheses supported by diagnostics
+  - tests that are still recommended next
+
+ISSUE TYPE MAPPING:
+- selection_rate -> demographic_disparity
+- true_positive_rate -> unequal_opportunity
+- false_positive_rate -> unequal_harm
+
+PROJECT THRESHOLDS (from audit_config):
+- fairness_threshold = 0.05
+- severity bands using "difference":
+  - mild if difference >= 0.025000 and < 0.050000
+  - moderate if difference >= 0.050000 and < 0.100000
+  - severe if difference >= 0.100000
+  - if missing fields -> unknown
+
+GUIDANCE FOR RECOMMENDED_TESTS:
+- recommended_tests should contain only tests that are still useful to run next.
+- Do NOT include diagnostics that have already been run and whose artifacts are already present.
+- If diagnostics already provide partial evidence but not a conclusion, you may recommend follow-up tests.
+- If group_sizes.json already exists, do NOT recommend check_group_sample_sizes again.
+- If diagnostics.feature_distribution__<attribute> exists, do NOT recommend run_feature_distribution_comparison again for that attribute.
+- If diagnostics.proxy_detection__<attribute> exists, do NOT recommend run_proxy_detection again for that attribute.
+- If diagnostics.threshold_sensitivity__<attribute> exists, do NOT recommend run_threshold_sensitivity again for that attribute.
+- If diagnostics.slice_scan exists, do NOT recommend run_slice_scan again.
+
+OUTPUT JSON SCHEMA:
+{
+  "summary": string,
+  "detected_issues": [
+    {
+      "attribute": string,
+      "metric": string,
+      "issue_type": string,
+      "severity": "mild"|"moderate"|"severe"|"unknown",
+      "evidence": [string, ...]
+    }
+  ],
+  "likely_causes": [string, ...],
+  "recommended_tests": [string, ...],
+  "mitigations": [string, ...],
+  "limits": [string, ...],
+  "narrative_markdown": string
+}
+
+Narrative markdown must use headings:
+## Fairness Audit Narrative
+### What we found
+### Evidence (numbers)
+### Likely causes (hypotheses)
+### Recommended next tests
+### Mitigations to consider
+### Limits / Unknowns
+
+EVIDENCE JSON:
+{
+  "fairness_report": {
+    "gender": {
+      "by_group": {
+        "selection_rate": {
+          "Female": 0.0766179023059757,
+          "Male": 0.26718023966740034
+        },
+        "true_positive_rate": {
+          "Female": 0.5206422018348624,
+          "Male": 0.6315366049879324
+        },
+        "false_positive_rate": {
+          "Female": 0.02279677509035307,
+          "Male": 0.10804638088545326
+        }
+      },
+      "difference": {
+        "selection_rate": 0.19056233736142464,
+        "true_positive_rate": 0.11089440315306998,
+        "false_positive_rate": 0.08524960579510019
+      },
+      "ratio": {
+        "selection_rate": 0.2867648535735786,
+        "true_positive_rate": 0.8244054227780051,
+        "false_positive_rate": 0.2109906403484385
+      },
+      "flags": {
+        "selection_rate": true,
+        "true_positive_rate": true,
+        "false_positive_rate": true
+      }
+    },
+    "race": {
+      "by_group": {
+        "selection_rate": {
+          "Amer-Indian-Eskimo": 0.1092436974789916,
+          "Asian-Pac-Islander": 0.2756756756756757,
+          "Black": 0.09245122985581,
+          "Other": 0.1320754716981132,
+          "White": 0.2161540672607071
+        },
+        "true_positive_rate": {
+          "Amer-Indian-Eskimo": 0.5294117647058824,
+          "Asian-Pac-Islander": 0.6576576576576577,
+          "Black": 0.5692307692307692,
+          "Other": 0.7058823529411765,
+          "White": 0.6154136758594635
+        },
+        "false_positive_rate": {
+          "Amer-Indian-Eskimo": 0.0392156862745098,
+          "Asian-Pac-Islander": 0.11196911196911197,
+          "Black": 0.03336510962821735,
+          "Other": 0.02247191011235955,
+          "White": 0.08048780487804878
+        }
+      },
+      "difference": {
+        "selection_rate": 0.1832244458198657,
+        "true_positive_rate": 0.17647058823529416,
+        "false_positive_rate": 0.08949720185675242
+      },
+      "ratio": {
+        "selection_rate": 0.3353623043789186,
+        "true_positive_rate": 0.75,
+        "false_positive_rate": 0.2006974041069353
+      },
+      "flags": {
+        "selection_rate": true,
+        "true_positive_rate": true,
+        "false_positive_rate": true
+      }
+    },
+    "age_group": {
+      "by_group": {
+        "selection_rate": {
+          "adult": 0.18588531821045998,
+          "middle": 0.3240076518412243,
+          "senior": 0.24831460674157305,
+          "young": 0.013877207737594618
+        },
+        "true_positive_rate": {
+          "adult": 0.5810313075506446,
+          "middle": 0.6419131529263687,
+          "senior": 0.6346153846153846,
+          "young": 0.358974358974359
+        },
+        "false_positive_rate": {
+          "adult": 0.0691156462585034,
+          "middle": 0.12919398380254532,
+          "senior": 0.13049853372434017,
+          "young": 0.008123129542539546
+        }
+      },
+      "difference": {
+        "selection_rate": 0.3101304441036297,
+        "true_positive_rate": 0.28293879395200977,
+        "false_positive_rate": 0.12237540418180062
+      },
+      "ratio": {
+        "selection_rate": 0.04282987657462781,
+        "true_positive_rate": 0.5592257415786828,
+        "false_positive_rate": 0.062246902786651355
+      },
+      "flags": {
+        "selection_rate": true,
+        "true_positive_rate": true,
+        "false_positive_rate": true
+      }
+    }
+  },
+  "metrics": {
+    "accuracy": 0.8507902710670707,
+    "n_train": 36631,
+    "n_test": 12211,
+    "model_type": "logistic_regression",
+    "label_col": "income",
+    "positive_label": "high_income",
+    "sensitive_cols": [
+      "gender",
+      "race",
+      "age_group"
+    ],
+    "has_y_score": true,
+    "model_classes": [
+      "high_income",
+      "low_income"
+    ]
+  },
+  "group_sizes": {
+    "gender": {
+      "Male": 8178,
+      "Female": 4033
+    },
+    "race": {
+      "White": 10437,
+      "Black": 1179,
+      "Asian-Pac-Islander": 370,
+      "Amer-Indian-Eskimo": 119,
+      "Other": 106
+    },
+    "age_group": {
+      "adult": 4761,
+      "middle": 4182,
+      "young": 2378,
+      "senior": 890
+    }
+  },
+  "agent_plan": {
+    "requested_diagnostics": [
+      {
+        "tool": "run_threshold_sensitivity",
+        "args": {
+          "attribute": "gender"
+        },
+        "reason": "TPR/FPR disparities are flagged for this attribute."
+      },
+      {
+        "tool": "run_proxy_detection",
+        "args": {
+          "attribute": "race"
+        },
+        "reason": "Selection rate disparity is flagged for this attribute and no feature_distribution artifact exists."
+      }
+    ]
+  },
+  "diagnostics_keys": [
+    "proxy_detection__race",
+    "threshold_sensitivity__gender"
+  ]
+}

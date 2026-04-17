@@ -1,18 +1,17 @@
 {
   "requested_diagnostics": [
     {
-      "tool": "run_threshold_sensitivity",
+      "tool": "run_proxy_detection",
       "args": {
         "attribute": "gender"
       },
       "reason": "TPR/FPR disparities are flagged for this attribute."
     },
     {
-      "tool": "run_proxy_detection",
+      "tool": "run_feature_distribution_comparison",
       "args": {
         "attribute": "race"
-      },
-      "reason": "Selection rate disparity is flagged for this attribute and no feature_distribution artifact exists."
+      }
     }
   ]
 }

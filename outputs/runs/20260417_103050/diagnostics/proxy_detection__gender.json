@@ -1,0 +1,10 @@
+{
+  "attribute": "gender",
+  "classes": [
+    "Female",
+    "Male"
+  ],
+  "accuracy": 0.8278601261157972,
+  "auc": 0.9181957338142763,
+  "risk_level": "high"
+}

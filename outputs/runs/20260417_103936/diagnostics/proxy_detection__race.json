@@ -1,0 +1,4 @@
+{
+  "attribute": "race",
+  "error": "Proxy detection currently supports binary attribute only; found 5 groups."
+}
