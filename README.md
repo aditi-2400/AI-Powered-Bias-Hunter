@@ -224,23 +224,71 @@ Primary files in `outputs/runs/latest/`:
 ## Project Structure
 ```text
 bias-hunter/
-├── config/
+├── api
+│   ├── __init__.py
+│   ├── app.py
+│   ├── schemas.py
+│   └── services.py
+├── config
 │   ├── audit_config.yaml
-│   └── schemas/
-├── data/
-│   └── dataset.py
-├── src/
-│   ├── train.py
-│   ├── evaluate_fairness_metrics.py
+│   └── schemas
+│       └── german_credit_schema.json
+├── data
+│   ├── __init__.py
+│   ├── dataset.py
+│   └── german.data
+├── frontend
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── api.ts
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── styles.css
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── outputs
+│   └── runs
+│       ├── 20260307_144859
+│       ├── 20260320_142653
+│       ├── 20260327_074239
+│       ├── 20260417_103050
+│       ├── 20260417_103936
+│       └── latest
+│           ├── agent_plan_prompt.txt
+│           ├── agent_plan.json
+│           ├── agent_report_prompt.txt
+│           ├── agent_report.json
+│           ├── diagnostics
+│           │   ├── slice_scan.json
+│           │   └── threshold_sensitivity__age_group.json
+│           ├── diagnostics_run_summary.json
+│           ├── fairness_by_group.csv
+│           ├── fairness_report.json
+│           ├── group_sizes.json
+│           ├── metrics.json
+│           ├── predictions.csv
+│           ├── report.md
+│           └── X_test_features.csv
+├── README.md
+├── requirements.txt
+├── src
+│   ├── __init__.py
 │   ├── agent_common.py
 │   ├── agent_plan.py
-│   ├── run_diagnostics.py
 │   ├── agent_report.py
-│   └── reporting.py
-├── ui/
-│   └── app.py
-└── outputs/
-    └── runs/
+│   ├── agent.py
+│   ├── evaluate_fairness_metrics.py
+│   ├── model.py
+│   ├── preprocessing.py
+│   ├── reporting.py
+│   ├── run_diagnostics.py
+│   └── train.py
+└── ui
+    ├── __init__.py
+    └── app.py
 ```
 
 ## Notes
